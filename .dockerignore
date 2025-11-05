@@ -1,0 +1,7 @@
+.aws-sam
+.git
+.vscode
+__pycache__
+*.pyc
+.env
+events

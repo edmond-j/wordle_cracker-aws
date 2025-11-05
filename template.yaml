@@ -1,0 +1,41 @@
+# This AWS SAM template has been generated from your function's configuration. If
+# your function has one or more triggers, note that the AWS resources associated
+# with these triggers aren't fully specified in this template and include
+# placeholder values. Open this template in AWS Infrastructure Composer or your
+# favorite IDE and modify it to specify a serverless application with other AWS
+# resources.
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: wordle cracker.
+Resources:
+  WordleCrackerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordlecracker-container
+      CodeUri: .
+      Description: ''
+      MemorySize: 256
+      Timeout: 30
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      EphemeralStorage:
+        Size: 512
+      Environment:
+        Variables:
+          dictionary_bucket: wordlecracker-s3
+          dictionary_file: en-5.txt
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 21600
+        MaximumRetryAttempts: 2
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+      PackageType: Zip
+      RecursiveLoop: Terminate
+      Role: arn:aws:iam::715871776555:role/lambda_executor
+      SnapStart:
+        ApplyOn: None
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: Auto
