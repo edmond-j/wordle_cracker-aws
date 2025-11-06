@@ -10,3 +10,7 @@ sam build
 sam deploy --guided
 
 sam local invoke WordleCrackerLambda -e .\events\event.json   
+
+docker build -t 715871776555.dkr.ecr.ap-southeast-2.amazonaws.com/wordlecracker:latest .
+
+docker push 715871776555.dkr.ecr.ap-southeast-2.amazonaws.com/wordlecracker:latest 

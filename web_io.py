@@ -34,8 +34,8 @@ driver.find_element(
 sleep(3)
 
 # click on the close button
-# driver.find_element(By.CLASS_NAME, "Modal-module_closeIcon__TcEKb").click()
-# sleep(1)
+driver.find_element(By.CLASS_NAME, "Modal-module_closeIcon__TcEKb").click()
+sleep(1)
 
 state = driver.find_element(
     By.XPATH, '//*[@id="wordle-app-game"]/div[1]/div/div[1]/div[1]/div'
@@ -59,8 +59,13 @@ def input(word, row):
     result = []
     blocks = driver.find_elements(By.XPATH, f'//*[@aria-label="Row {row}"]/div/div')
     for i in range(0, 5, 1):
-        result.append(blocks[i].get_attribute("data-state"))
-    logger.info(f"{word}, {result}")
+        # result.append(blocks[i].get_attribute("data-state"))
+        word_state = blocks[i].get_attribute("data-state")
+
+        if word_state == "absent" and (word[i] in word[:i]) and result[word.index(word[i])] == "present":
+           word_state = "present"
+        result.append(word_state)
+    logger.info(f"try '{word}': {result}")
     return result
 
 
