@@ -4,23 +4,22 @@ on:
   push:
     branches:
       - main
-    # 可按需改成特定路径触发，例如只在 Dockerfile / src 改动时触发
+    # 特定路径触发
     paths:
+      - '.github/workflows/deploy-lambda.yml'
       - 'Dockerfile'
       - '*.py'
 
 env:
-  AWS_REGION: ap-southeast-2               # 改为你的 region
-  ECR_REPOSITORY: wordlecracker            # ECR 仓库名（不含 account/region）
-  LAMBDA_FUNCTION_NAME: wordlecracker-container  # 要更新的 Lambda 名
-  IMAGE_TAG: ${{ github.sha }}             # 用 commit sha 作为 tag（可改成 v1, latest 等）
-  # ECR registry 会以 accountId.dkr.ecr.<region>.amazonaws.com 形式拼出
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+  AWS_REGION: ap-southeast-2               
+  ECR_REPOSITORY: wordlecracker            
+  LAMBDA_FUNCTION_NAME: wordlecracker-container  
+  IMAGE_TAG: ${{ github.sha.substring(0, 7) }}            
+  
 
 permissions:
   contents: read
-  id-token: write        # 如果想用 OIDC，可改成用 OIDC flow（需要额外配置）
-  # AWS credentials via secrets below will be used by configure-aws-credentials
+  id-token: write       
 
 jobs:
   build-push-deploy:
@@ -53,7 +52,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         platforms: linux/amd64
         provenance: false   # 关闭 provenance 防止生成 OCI attestation/index
         sbom: false         # 关闭 SBOM 输出，避免生成额外 index entries
@@ -61,7 +60,7 @@ jobs:
     - name: Wait a few seconds for ECR consistency
       run: sleep 5
 
-    - name: Get latest pushed image digest from ECR
+    - name: Get latest pushed image digest from ECR and Update Lambda function
       id: get-digest
       run: |
         # Query ECR for the most recently pushed image in this repository.
@@ -70,7 +69,7 @@ jobs:
         ACCOUNT="${{ secrets.AWS_ACCOUNT_ID }}"
         REGION="${{ env.AWS_REGION }}"
         # get image digest (sha256:...)
-        DIGEST=$(aws ecr describe-images --repository-name "$REPO" --region "$REGION" --query 'imageDetails[1].imageDigest' --output text)
+        DIGEST=$(aws ecr describe-images --repository-name "$REPO" --region "$REGION" --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
         if [ -z "$DIGEST" ] || [ "$DIGEST" = "None" ]; then
           echo "Failed to get image digest from ECR"
           exit 1
@@ -78,16 +77,8 @@ jobs:
         echo "Found digest: $DIGEST"
         # expose for following steps
         echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
-        echo "image_uri=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}@$DIGEST" >> $GITHUB_OUTPUT
-
-    - name: Update Lambda function code to use new image (by digest)
-      id: update-lambda
-      run: |
-        IMAGE_URI="${{ steps.get-digest.outputs.image_uri }}"
-        echo "Updating Lambda ${{ env.LAMBDA_FUNCTION_NAME }} to image $IMAGE_URI"
-        aws lambda update-function-code --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" --image-uri "$IMAGE_URI" --region "${{ env.AWS_REGION }}"
-      env:
-        AWS_REGION: ${{ env.AWS_REGION }}
+        IMAGE_URI="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/${REPO}@${DIGEST}"
+        aws lambda update-function-code --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" --image-uri "$IMAGE_URI" --region "$REGION"
 
     - name: Show Lambda update result
       run: |

@@ -21,3 +21,13 @@ $image = aws ecr describe-images --repository-name wordlecracker --query 'imageD
 
 #自动化更新image  
 aws lambda update-function-code --function-name wordlecracker-container --image-uri 715871776555.dkr.ecr.ap-southeast-2.amazonaws.com/wordlecracker@${image}
+
+docker buildx create --use
+docker buildx inspect --bootstrap
+docker buildx build \
+  --platform linux/amd64 \
+  --provenance=false \
+  --sbom=false \
+  -t <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<REPOSITORY>:<TAG> \
+  --push \
+  .
