@@ -14,7 +14,7 @@ env:
   AWS_REGION: ap-southeast-2               
   ECR_REPOSITORY: wordlecracker            
   LAMBDA_FUNCTION_NAME: wordlecracker-container  
-  IMAGE_TAG: ${{ github.sha.substring(0, 7) }}            
+  IMAGE_TAG: ${{ github.sha }}            
   
 
 permissions:

@@ -1,6 +1,8 @@
+import datetime
 import boto3
 import os
 import logging
+import json
 
 # 本地加载.env文件
 # from dotenv import load_dotenv
@@ -12,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 def read_words():
     s3 = boto3.client("s3")
-    bucket = os.environ["dictionary_bucket"]
-    key = os.environ["dictionary_file"]
+    bucket = os.environ["bucket"]
+    key = os.environ["dictionary"]
     response = s3.get_object(Bucket=bucket, Key=key)
     file_content = response["Body"].read().decode("utf-8")
     five_letter_words = []
@@ -123,6 +125,30 @@ def word_check(word, row):
         else:
             present.append({"pos": j, "letter": word[j]})
 
+def output_result(answer: str):
+    s3 = boto3.client("s3")
+    bucket = os.environ["bucket"]
+    key = os.environ["results"]
+
+    obj= s3.get_object(Bucket=bucket, Key=key)
+    body = obj['Body'].read()
+    if not body:
+            data = []
+    else:
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+    # 文件内容不是有效 JSON，保险起见当作空列表处理
+            data = []
+    if not isinstance(data, list):
+    # 防万一，兜底成空列表
+        data = []
+    today = datetime.date.today().isoformat()
+    data = [item for item in data if item.get("date") != today]
+    
+    data.append({"date": today, "answer": answer})
+    s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(data,ensure_ascii=False), ContentType="application/json")
+    logger.info(f"result '{answer}' written to s3://{bucket}/{key}")
 
 def lambda_handler(event, context):
     for i in range(0, 3):
@@ -134,12 +160,12 @@ def lambda_handler(event, context):
         if len(candidates) == 0:
             feedback = "no suitable word is found in the dictionary!"
             logger.warning(feedback)
-            # 写入文件
+            output_result("N/A")
             break
         elif len(candidates) == 1:
             feedback = f"the answer is: {candidates[0]}"
             logger.info(feedback)
-            # 写入文件
+            output_result(candidates[0])
             break
         else:
             logger.info(f"round {i}, candidates: {candidates}")
