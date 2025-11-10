@@ -60,23 +60,12 @@ jobs:
     - name: Wait a few seconds for ECR consistency
       run: sleep 5
 
-    - name: Get latest pushed image digest from ECR and Update Lambda function
-      id: get-digest
+    - name: Update Lambda function
+      id: update-lambda
       run: |
-        # Query ECR for the most recently pushed image in this repository.
-        # We use sort_by(imageDetails,& imagePushedAt)[-1] to pick the newest image.
         REPO="${{ env.ECR_REPOSITORY }}"
         ACCOUNT="${{ secrets.AWS_ACCOUNT_ID }}"
         REGION="${{ env.AWS_REGION }}"
-        # get image digest (sha256:...)
-        DIGEST=$(aws ecr describe-images --repository-name "$REPO" --region "$REGION" --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
-        if [ -z "$DIGEST" ] || [ "$DIGEST" = "None" ]; then
-          echo "Failed to get image digest from ECR"
-          exit 1
-        fi
-        echo "Found digest: $DIGEST"
-        # expose for following steps
-        echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
         IMAGE_URI="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:${IMAGE_TAG}"
         aws lambda update-function-code --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" --image-uri "$IMAGE_URI" --region "$REGION"
 
