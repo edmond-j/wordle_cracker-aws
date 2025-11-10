@@ -77,7 +77,7 @@ jobs:
         echo "Found digest: $DIGEST"
         # expose for following steps
         echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
-        IMAGE_URI="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/${REPO}@${DIGEST}"
+        IMAGE_URI="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:${IMAGE_TAG}"
         aws lambda update-function-code --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" --image-uri "$IMAGE_URI" --region "$REGION"
 
     - name: Show Lambda update result
