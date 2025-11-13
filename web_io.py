@@ -28,9 +28,7 @@ driver = webdriver.Chrome(options=options)
 driver.get("https://www.nytimes.com/games/wordle/index.html")
 logger.debug(f"title: {driver.title}")
 # click on the start button
-driver.find_element(
-    By.XPATH, "/html/body/div[2]/div[1]/div/div/div/div[2]/button[3]"
-).click()
+driver.find_element(By.CSS_SELECTOR, '[data-testid="Play"]').click()
 sleep(3)
 
 # click on the close button
