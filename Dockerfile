@@ -12,5 +12,5 @@ ENV XDG_CACHE_HOME=/tmp/.cache
 
 # 确保 /tmp/.cache 存在并可写
 RUN mkdir -p /tmp/.cache && chown root:root /tmp/.cache && chmod 1777 /tmp/.cache
-
+RUN ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
 CMD ["app.lambda_handler"]
