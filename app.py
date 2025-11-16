@@ -85,7 +85,6 @@ def is_wrong_missing(word):
             if l["letter"] not in word:
                 return True
 
-
 def must_have(word):
     if len(must) == 0:
         return True
@@ -118,6 +117,8 @@ def word_check(word, row):
     results = web_io.input(word, row)
     # results =['absent', 'absent', 'absent', 'present', 'absent']
     for j in range(0, 5):
+        if results[j] == "tbd":
+            return
         if results[j] == "absent":
             absent.append(word[j])
         elif results[j] == "correct":
