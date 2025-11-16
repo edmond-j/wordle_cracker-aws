@@ -3,6 +3,7 @@ import boto3
 import os
 import logging
 import json
+# from dotenv import load_dotenv
 
 # 本地加载.env文件
 # from dotenv import load_dotenv
@@ -118,7 +119,8 @@ def word_check(word, row):
     # results =['absent', 'absent', 'absent', 'present', 'absent']
     for j in range(0, 5):
         if results[j] == "tbd":
-            return
+
+            return "invalid"
         if results[j] == "absent":
             absent.append(word[j])
         elif results[j] == "correct":
@@ -157,7 +159,8 @@ def lambda_handler(event, context):
     # 逻辑有问题
     candidates = guess(all_words)
     feedback: str
-    for i in range(4, 7):
+    i = 4
+    while i <= 6:
         if len(candidates) == 0:
             feedback = "no suitable word is found in the dictionary!"
             logger.warning(feedback)
@@ -168,10 +171,18 @@ def lambda_handler(event, context):
             logger.info(feedback)
             output_result(candidates[0])
             break
-        else:
-            logger.info(f"round {i}, candidates: {candidates}")
-            word_check(candidates[0], i)
-            candidates = guess(candidates)
+
+        logger.info(f"round {i}, candidates: {candidates}")
+
+        if word_check(candidates[0], i) == "invalid":
+            candidates = candidates[1:]
+            logger.info(f"word invalid, try next word, candidates left: {candidates}")
+            # 不增加 i → 下一轮继续是同一个 i
+            continue
+
+        # 走到这里表示该 candidate valid
+        candidates = guess(candidates)
+        i += 1
             # 如果第五次结束后有2个选项，而第六次没提交正确的，那么屏幕上无法显示正确答案，但实际上程序知道了正确答案
             # 其实程序可以尝试无限多次，只要每次都重开浏览器
 

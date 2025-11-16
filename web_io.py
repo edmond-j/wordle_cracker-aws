@@ -66,6 +66,11 @@ def input(word, row):
     logger.info(f"try '{word}': {result}")
     return result
 
+def clearinput():
+    key = driver.find_element(By.XPATH, '//*[@data-key="←"]')
+    # print(key.get_attribute("aria-label"))
+    for _ in range(5):
+        key.click()
 
 if __name__ == "__main__":
     input("touch", 1)
