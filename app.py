@@ -119,17 +119,18 @@ def guess(words_list):
 def word_check(word, row):
     results = web_io.input(word, row)
     # results =['absent', 'absent', 'absent', 'present', 'absent']
+    if results[0] == "tbd":
+        invalid_words.append(word)
+        print("invalid words: ", invalid_words)
+        return "invalid"
     for j in range(0, 5):
-        if results[j] == "tbd":
-            invalid_words.append(word)
-            return "invalid"
         if results[j] == "absent":
             absent.append(word[j])
         elif results[j] == "correct":
             correct.append({"pos": j, "letter": word[j]})
         else:
             present.append({"pos": j, "letter": word[j]})
-
+    return "valid"
 
 def output_result(answer: str):
     s3 = boto3.client("s3")
@@ -195,6 +196,7 @@ def lambda_handler(event, context):
             candidates = candidates[1:]
             logger.info(f"word invalid, try next word, candidates left: {candidates}")
             # 不增加 i → 下一轮继续是同一个 i
+            web_io.clearinput()
             continue
 
         # 走到这里表示该 candidate valid
