@@ -55,15 +55,16 @@ def input(word, row):
     enter.click()
     sleep(3)
     result = []
-    blocks = driver.find_elements(By.XPATH, f'//*[@aria-label="Row {row}"]/div/div')
     for i in range(0, 5, 1):
-        # result.append(blocks[i].get_attribute("data-state"))
+        blocks = driver.find_elements(By.XPATH, f'//*[@aria-label="Row {row}"]/div/div')
         word_state = blocks[i].get_attribute("data-state")
-
-        if word_state == "absent" and (word[i] in word[:i]) and result[word.index(word[i])] == "present":
-           word_state = "present"
-        result.append(word_state)
-    logger.info(f"try '{word}': {result}")
+        if word_state == "tbd":
+            result.append("tbd")
+            return result
+        key = driver.find_element(By.XPATH, f'//*[@data-key="{word[i]}"]')
+        keyboard_state = key.get_attribute("data-state")
+        result.append(keyboard_state)
+    print(f"try '{word}': {result}")
     return result
 
 def clearinput():

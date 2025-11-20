@@ -151,15 +151,21 @@ def output_result(answer: str):
         # 防万一，兜底成空列表
         data = []
     today = datetime.date.today().isoformat()
-    data = [item for item in data if item.get("date") != today]
+    today_record = next((item for item in data if item.get("date") == today), None)
 
-    data.append({"date": today, "answer": answer})
-    s3.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=json.dumps(data, ensure_ascii=False),
-        ContentType="application/json",
-    )
+# 新规则：今天已有答案且不是 N/A，但本次 answer 是 N/A → 不写入
+    if answer == "N/A" and today_record and today_record.get("answer") != "N/A":
+        print("Today's answer already exists and is not N/A. Skip writing.")
+    else:
+        # 先删除今天旧记录
+        data = [item for item in data if item.get("date") != today]
+        data.append({"date": today, "answer": answer})
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(data, ensure_ascii=False),
+            ContentType="application/json",
+        )
     logger.info(f"result '{answer}' written to s3://{bucket}/{key}")
 
 
