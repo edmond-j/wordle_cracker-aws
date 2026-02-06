@@ -182,7 +182,7 @@ def lambda_handler(event, context):
         word_check(pop_words[i], i + 1)
     # 逻辑有问题
     candidates = guess(all_words)
-    feedback: str
+    feedback: str=""
     i = 4
     while i <= 6:
         if len(candidates) == 0:

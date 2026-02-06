@@ -23,7 +23,7 @@ def output_resutl(answer: str):
         data = []
     today = datetime.date.today().isoformat()
     data = [item for item in data if item.get("date") != today]
-    
+    today.strip()
     data.append({"date": today, "answer": answer})
     s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(data,ensure_ascii=False), ContentType="application/json")
 
