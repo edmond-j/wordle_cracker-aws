@@ -11,14 +11,14 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL"), force=True)
 logger = logging.getLogger(__name__)
 
 options = Options()
-options.add_argument("--headless")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-#本地运行需要关闭下面三个
-if __name__ != "__main__":
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-extensions")
+
+if "AWS_LAMBDA_FUNCTION_NAME" in os.environ: 
+    options.add_argument("--headless") 
     options.add_argument("--single-process")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-extensions")
 
 # # 每次创建一个独立的临时用户目录
 # user_data_dir = tempfile.mkdtemp(prefix="chrome-user-data-")
@@ -29,16 +29,11 @@ if __name__ != "__main__":
 driver = webdriver.Chrome(options=options)
 driver.get("https://www.nytimes.com/games/wordle/index.html")
 logger.debug(f"title: {driver.title}")
+
+
 # click on the start button
-driver.execute_script(""" var banner = document.getElementById('fides-banner-inner'); if (banner) { banner.style.display = 'none'; } """)
-
-
-btn_play=driver.find_element(By.CSS_SELECTOR, '[data-testid="Play"]')
-if btn_play:
-    btn_play.click()
-    sleep(3)
-else: 
-    logger.debug(f"didn't find play button")
+driver.find_element(By.CSS_SELECTOR, "[data-testid='Play']").click()
+sleep(1)
 # click on the close button
 driver.find_element(By.CLASS_NAME, "Modal-module_closeIcon__TcEKb").click()
 sleep(1)

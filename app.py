@@ -4,11 +4,11 @@ import os
 import logging
 import json
 
-# from dotenv import load_dotenv
-
-# 本地加载.env文件
-# from dotenv import load_dotenv
-# load_dotenv()
+# load .env文件
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+    from dotenv import load_dotenv
+    load_dotenv()
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL"), force=True)
 logger = logging.getLogger(__name__)
@@ -214,5 +214,6 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": feedback}
 
 
-# if __name__ == "__main__":
-#     lambda_handler(None, None)
+if __name__ == "__main__":
+
+    lambda_handler(None, None)
