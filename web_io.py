@@ -33,6 +33,7 @@ driver = webdriver.Chrome(options=options)
 driver.get("https://www.nytimes.com/games/wordle/index.html")
 logger.debug(f"title: {driver.title}")
 
+wait = WebDriverWait(driver, 20)
 try:
     gdpr = WebDriverWait(driver, 5).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='GDPR-accept']"))
@@ -43,10 +44,16 @@ except:
 
 
 # click on the start button
-driver.find_element(By.CSS_SELECTOR, "[data-testid='Play']").click()
+play_btn = wait.until(
+    EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-testid='Play']"))
+)
+play_btn.click()
 sleep(1)
 # click on the close button
-driver.find_element(By.CLASS_NAME, "Modal-module_closeIcon__TcEKb").click()
+close_btn = wait.until(
+    EC.element_to_be_clickable((By.CLASS_NAME, "Modal-module_closeIcon__TcEKb"))
+)
+close_btn.click()
 sleep(1)
 
 state = driver.find_element(
