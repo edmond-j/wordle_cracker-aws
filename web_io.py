@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import logging
 import os
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # from selenium.webdriver.chrome.service import Service
 # import tempfile
@@ -30,6 +32,14 @@ if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
 driver = webdriver.Chrome(options=options)
 driver.get("https://www.nytimes.com/games/wordle/index.html")
 logger.debug(f"title: {driver.title}")
+
+try:
+    gdpr = WebDriverWait(driver, 5).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='GDPR-accept']"))
+    )
+    gdpr.click()
+except:
+    pass
 
 
 # click on the start button
