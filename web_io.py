@@ -33,6 +33,7 @@ driver = webdriver.Chrome(options=options)
 driver.get("https://www.nytimes.com/games/wordle/index.html")
 logger.debug(f"title: {driver.title}")
 
+wait = WebDriverWait(driver, 20)
 # 强制隐藏 GDPR 遮罩
 driver.execute_script("""
     let banner = document.getElementById('fides-banner-inner');
@@ -41,7 +42,13 @@ driver.execute_script("""
     }
 """)
 
-wait = WebDriverWait(driver, 20)
+try:
+    gdpr_btn = WebDriverWait(driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, "//*[@id='fides-banner-inner']//button"))
+    )
+    gdpr_btn.click()
+except:
+    pass
 
 # click on the start button
 play_btn = wait.until(
