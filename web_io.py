@@ -13,11 +13,12 @@ logger = logging.getLogger(__name__)
 options = Options()
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--disable-gpu")
+
 options.add_argument("--disable-extensions")
 
 if "AWS_LAMBDA_FUNCTION_NAME" in os.environ: 
-    options.add_argument("--headless") 
+    options.add_argument("--disable-gpu")
+    # options.add_argument("--headless") 
     options.add_argument("--single-process")
 
 # # 每次创建一个独立的临时用户目录
